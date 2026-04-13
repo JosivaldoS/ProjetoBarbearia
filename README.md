@@ -1,6 +1,5 @@
 # Projeto Barbearia
 
-<<<<<<< HEAD
 Sistema de agendamento para barbearia desenvolvido em React.
 
 ## Como executar
@@ -96,10 +95,6 @@ src/
 - **Programa fidelidade** automático
 - **Persistência local** - dados salvos no navegador
 - **Código organizado** em componentes modulares
-
-## 📄 Licença
-
-Este projeto é open source e pode ser usado livremente.
 
 ---
 
