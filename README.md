@@ -29,7 +29,6 @@ Sistema de agendamento para barbearia desenvolvido em React.
 - **React 18** - Framework JavaScript
 - **Vite** - Build tool e dev server
 - **LocalStorage** - Persistência de dados
-- **CSS-in-JS** - Estilização moderna
 
 ## 📦 Como executar localmente
 
