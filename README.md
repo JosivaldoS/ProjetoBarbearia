@@ -95,7 +95,3 @@ src/
 - **Programa fidelidade** automático
 - **Persistência local** - dados salvos no navegador
 - **Código organizado** em componentes modulares
-
----
-
-**Desenvolvido com ❤️ para demonstrar habilidades em React**
