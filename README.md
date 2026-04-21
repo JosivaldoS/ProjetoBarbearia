@@ -1,6 +1,5 @@
 # Projeto Barbearia
 
-<<<<<<< HEAD
 Sistema de agendamento para barbearia desenvolvido em React.
 
 ## Como executar
@@ -15,8 +14,7 @@ Sistema de agendamento para barbearia desenvolvido em React.
 - Programa de fidelidade
 - Painel administrativo do barbeiro
 - Gerenciamento de slots por dia
-=======
-Sistema completo de agendamento para barbearia desenvolvido em React.
+- Sistema completo de agendamento para barbearia desenvolvido em React.
 
 ## 🚀 Funcionalidades
 
@@ -31,7 +29,6 @@ Sistema completo de agendamento para barbearia desenvolvido em React.
 - **React 18** - Framework JavaScript
 - **Vite** - Build tool e dev server
 - **LocalStorage** - Persistência de dados
-- **CSS-in-JS** - Estilização moderna
 
 ## 📦 Como executar localmente
 
@@ -97,12 +94,3 @@ src/
 - **Programa fidelidade** automático
 - **Persistência local** - dados salvos no navegador
 - **Código organizado** em componentes modulares
-
-## 📄 Licença
-
-Este projeto é open source e pode ser usado livremente.
-
----
-
-**Desenvolvido com ❤️ para demonstrar habilidades em React**
->>>>>>> 32bfe06 (Add: README.md com documentação completa do projeto)
