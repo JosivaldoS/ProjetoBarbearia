@@ -1,0 +1,99 @@
+/* Agenda Tab */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 7px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.ap-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ap-left {
+  min-width: 52px;
+  text-align: center;
+}
+
+.ap-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ap-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  font-family: var(--font-display);
+}
+
+.ap-mid {
+  flex: 1;
+}
+
+.ap-phone {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.ap-service {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.ap-right {
+  text-align: right;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: #334155;
+  color: #fff;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.free-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--gold);
+  color: #000;
+  font-weight: 800;
+  margin-left: 6px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0;
+  font-size: 15px;
+}

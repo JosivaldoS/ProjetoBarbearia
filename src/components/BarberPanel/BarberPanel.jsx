@@ -1,9 +1,9 @@
 import { useState } from "react";
-import AgendaTab from "./AgendaTab";
-import SlotsTab from "./SlotsTab";
-import LoyaltyTab from "./LoyaltyTab";
-import ClientsTab from "./ClientsTab";
-import { styles } from "../styles";
+import AgendaTab from "../AgendaTab/AgendaTab";
+import SlotsTab from "../SlotsTab/SlotsTab";
+import LoyaltyTab from "../LoyaltyTab/LoyaltyTab";
+import ClientsTab from "../ClientsTab/ClientsTab";
+import "./BarberPanel.css";
 
 export default function BarberPanel({ data, update, setView, auth, setAuth }) {
   const [pw, setPw] = useState("");
@@ -12,24 +12,24 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
 
   if (!auth) {
     return (
-      <div style={styles.panel}>
-        <header style={styles.panelHeader}>
+      <div className="panel">
+        <header className="panel-header">
           <button className="btn-back" onClick={() => setView("home")}>
             ← Voltar
           </button>
-          <h2 style={styles.panelTitle}>Área do Barbeiro</h2>
+          <h2 className="panel-title">Área do Barbeiro</h2>
           <div />
         </header>
-        <div style={styles.panelBody}>
-          <div className="fade-in" style={styles.formCard}>
+        <div className="panel-body">
+          <div className="fade-in form-card">
             <div style={{ textAlign: "center", marginBottom: 24 }}>
               <span style={{ fontSize: 48 }}>🔐</span>
-              <h3 style={styles.cardTitle}>Acesso Restrito</h3>
-              <p style={styles.cardSub}>Digite a senha do barbeiro</p>
+              <h3 className="card-title">Acesso Restrito</h3>
+              <p className="card-sub">Digite a senha do barbeiro</p>
             </div>
             <input
               type="password"
-              style={styles.input}
+              className="input"
               placeholder="Senha"
               value={pw}
               onChange={(e) => {
@@ -43,7 +43,7 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
                 }
               }}
             />
-            {pwError && <p style={styles.error}>Senha incorreta. (padrão: 1234)</p>}
+            {pwError && <p className="error">Senha incorreta. (padrão: 1234)</p>}
             <button
               className="btn-primary"
               style={{ width: "100%", marginTop: 16 }}
@@ -68,8 +68,8 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
   ];
 
   return (
-    <div style={styles.panel}>
-      <header style={styles.panelHeader}>
+    <div className="panel">
+      <header className="panel-header">
         <button
           className="btn-back"
           onClick={() => {
@@ -79,11 +79,11 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
         >
           ← Sair
         </button>
-        <h2 style={styles.panelTitle}>Painel do Barbeiro</h2>
+        <h2 className="panel-title">Painel do Barbeiro</h2>
         <div />
       </header>
 
-      <div style={styles.tabBar}>
+      <div className="tab-bar">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -95,7 +95,7 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
         ))}
       </div>
 
-      <div style={styles.panelBody}>
+      <div className="panel-body">
         {tab === "agenda" && <AgendaTab data={data} update={update} />}
         {tab === "slots" && <SlotsTab data={data} update={update} />}
         {tab === "loyalty" && <LoyaltyTab data={data} update={update} />}

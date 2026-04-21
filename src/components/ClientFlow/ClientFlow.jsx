@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { SERVICES, next7Days, dateKey, formatPhone } from "../utils/data";
-import LoyaltyBadge from "./LoyaltyBadge";
-import Row from "./common/Row";
-import { styles } from "../styles";
+import { SERVICES, next7Days, dateKey, formatPhone } from "../../utils/data";
+import LoyaltyBadge from "../LoyaltyBadge";
+import Row from "../common/Row";
+import "./ClientFlow.css";
 
 export default function ClientFlow({ data, update, setView }) {
   const [step, setStep] = useState("phone");
@@ -38,7 +38,25 @@ export default function ClientFlow({ data, update, setView }) {
     const dow = date.getDay();
     const slots = data.availableSlots[dow] || [];
     const booked = bookedTimes(dateKey(date));
-    return slots.filter((t) => !booked.includes(t));
+    let available = slots.filter((t) => !booked.includes(t));
+
+    // Se é hoje, filtra horários que já passaram
+    const today = new Date();
+    const isToday = dateKey(date) === dateKey(today);
+    
+    if (isToday) {
+      const currentHour = today.getHours();
+      const currentMinutes = today.getMinutes();
+      
+      available = available.filter((timeStr) => {
+        const [h, m] = timeStr.split(':').map(Number);
+        const slotTime = h * 60 + m; // converte para minutos
+        const currentTime = currentHour * 60 + currentMinutes;
+        return slotTime > currentTime; // só mostra horários futuros
+      });
+    }
+
+    return available;
   };
 
   const handleBook = () => {
@@ -73,16 +91,16 @@ export default function ClientFlow({ data, update, setView }) {
   const days = next7Days().filter((d) => availableForDay(d).length > 0);
 
   return (
-    <div style={styles.panel}>
-      <header style={styles.panelHeader}>
+    <div className="panel">
+      <header className="panel-header">
         <button className="btn-back" onClick={() => setView("home")}>← Voltar</button>
-        <h2 style={styles.panelTitle}>Agendamento</h2>
-        <div style={styles.steps}>
+        <h2 className="panel-title">Agendamento</h2>
+        <div className="steps">
           {['Telefone', 'Horário', 'Confirmação'].map((s, i) => (
             <div
               key={s}
+              className="step-dot"
               style={{
-                ...styles.stepDot,
                 background:
                   i < (step === 'phone' ? 0 : step === 'date' ? 1 : step === 'confirm' ? 2 : 3) + 1 ||
                   step === 'done'
@@ -94,13 +112,13 @@ export default function ClientFlow({ data, update, setView }) {
         </div>
       </header>
 
-      <div style={styles.panelBody}>
+      <div className="panel-body">
         {step === 'phone' && (
-          <div className="fade-in" style={styles.formCard}>
-            <h3 style={styles.cardTitle}>Qual é o seu número?</h3>
-            <p style={styles.cardSub}>Usamos apenas seu telefone para identificação</p>
+          <div className="fade-in form-card">
+            <h3 className="card-title">Qual é o seu número?</h3>
+            <p className="card-sub">Usamos apenas seu telefone para identificação</p>
             <input
-              style={styles.input}
+              className="input"
               placeholder="(00) 00000-0000"
               value={phone}
               onChange={(e) => {
@@ -127,27 +145,27 @@ export default function ClientFlow({ data, update, setView }) {
         {step === 'date' && (
           <div className="fade-in">
             {isNew && (
-              <div style={styles.welcomeBar}>
+              <div className="welcome-bar">
                 🎉 Bem-vindo! Cadastro realizado com sucesso.
               </div>
             )}
             {loyalty.enabled && client?.freeNext && (
-              <div style={styles.freeBar}>
+              <div className="free-bar">
                 🎁 Seu próximo corte é <strong>GRATUITO</strong>! Aproveite.
               </div>
             )}
 
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>Escolha o Serviço</h3>
-              <div style={styles.serviceGrid}>
+            <div className="section">
+              <h3 className="section-title">Escolha o Serviço</h3>
+              <div className="service-grid">
                 {SERVICES.map((s) => (
                   <button
                     key={s.id}
                     className={`service-card ${selectedService === s.id ? 'active' : ''}`}
                     onClick={() => setSelectedService(s.id)}
                   >
-                    <span style={styles.serviceLabel}>{s.label}</span>
-                    <span style={styles.servicePrice}>
+                    <span className="service-label">{s.label}</span>
+                    <span className="service-price">
                       {client?.freeNext && loyalty.enabled ? 'GRÁTIS' : s.price}
                     </span>
                   </button>
@@ -155,9 +173,9 @@ export default function ClientFlow({ data, update, setView }) {
               </div>
             </div>
 
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>Escolha o Dia</h3>
-              <div style={styles.dayGrid}>
+            <div className="section">
+              <h3 className="section-title">Escolha o Dia</h3>
+              <div className="day-grid">
                 {days.map((d) => (
                   <button
                     key={dateKey(d)}
@@ -167,17 +185,17 @@ export default function ClientFlow({ data, update, setView }) {
                       setSelectedTime(null);
                     }}
                   >
-                    <span style={styles.dayName}>{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-                    <span style={styles.dayNum}>{d.getDate()}</span>
+                    <span className="day-name">{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+                    <span className="day-num">{d.getDate()}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {selectedDate && (
-              <div style={styles.section} className="fade-in">
-                <h3 style={styles.sectionTitle}>Horários Disponíveis</h3>
-                <div style={styles.timeGrid}>
+              <div className="section fade-in">
+                <h3 className="section-title">Horários Disponíveis</h3>
+                <div className="time-grid">
                   {availableForDay(selectedDate).map((t) => (
                     <button
                       key={t}
@@ -203,9 +221,9 @@ export default function ClientFlow({ data, update, setView }) {
         )}
 
         {step === 'confirm' && (
-          <div className="fade-in" style={styles.formCard}>
-            <h3 style={styles.cardTitle}>Confirmar Agendamento</h3>
-            <div style={styles.confirmCard}>
+          <div className="fade-in form-card">
+            <h3 className="card-title">Confirmar Agendamento</h3>
+            <div className="confirm-card">
               <Row label="Telefone" value={phone} />
               <Row label="Serviço" value={SERVICES.find((s) => s.id === selectedService)?.label} />
               <Row
@@ -233,10 +251,10 @@ export default function ClientFlow({ data, update, setView }) {
         )}
 
         {step === 'done' && (
-          <div className="fade-in" style={{ ...styles.formCard, textAlign: 'center' }}>
-            <div style={styles.successIcon}>✓</div>
-            <h3 style={styles.cardTitle}>Agendado!</h3>
-            <p style={styles.cardSub}>
+          <div className="fade-in form-card" style={{ textAlign: 'center' }}>
+            <div className="success-icon">✓</div>
+            <h3 className="card-title">Agendado!</h3>
+            <p className="card-sub">
               Seu horário está confirmado para{' '}
               <strong>
                 {selectedDate?.toLocaleDateString('pt-BR', {

@@ -1,0 +1,32 @@
+/* Clients Tab */
+
+.client-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.client-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.client-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.mini-ap {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}

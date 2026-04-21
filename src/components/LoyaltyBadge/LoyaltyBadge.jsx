@@ -1,4 +1,4 @@
-import { styles } from "../styles";
+import "./LoyaltyBadge.css";
 
 export default function LoyaltyBadge({ client, config }) {
   if (!config.enabled || !client) return null;
@@ -9,27 +9,27 @@ export default function LoyaltyBadge({ client, config }) {
   const pct = (progress / req) * 100;
 
   return (
-    <div style={styles.loyaltyBadge}>
-      <div style={styles.loyaltyTop}>
-        <span style={styles.loyaltyTitle}>✂ Fidelidade</span>
+    <div className="loyalty-badge">
+      <div className="loyalty-top">
+        <span className="loyalty-title">✂ Fidelidade</span>
         {client.freeNext ? (
-          <span style={styles.loyaltyFree}>GRÁTIS DISPONÍVEL!</span>
+          <span className="loyalty-free">GRÁTIS DISPONÍVEL!</span>
         ) : (
-          <span style={styles.loyaltyCount}>{progress}/{req} cortes</span>
+          <span className="loyalty-count">{progress}/{req} cortes</span>
         )}
       </div>
 
-      <div style={styles.loyaltyBar}>
+      <div className="loyalty-bar">
         <div
+          className="loyalty-fill"
           style={{
-            ...styles.loyaltyFill,
             width: `${client.freeNext ? 100 : pct}%`,
           }}
         />
       </div>
 
       {!client.freeNext && (
-        <p style={styles.loyaltySub}>
+        <p className="loyalty-sub">
           Faltam <strong>{req - progress}</strong> corte{req - progress !== 1 ? "s" : ""} para o próximo gratuito!
         </p>
       )}

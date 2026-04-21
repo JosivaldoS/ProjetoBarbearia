@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { SERVICES, dateKey, formatPhone, statusColor } from "../utils/data";
-import { styles } from "../styles";
+import { SERVICES, dateKey, formatPhone, statusColor } from "../../utils/data";
+import "./AgendaTab.css";
 
 export default function AgendaTab({ data, update }) {
   const [filter, setFilter] = useState("todos");
@@ -30,7 +30,7 @@ export default function AgendaTab({ data, update }) {
 
   return (
     <div>
-      <div style={styles.filterBar}>
+      <div className="filter-bar">
         {['todos', 'hoje', 'futuros', 'pendentes'].map((f) => (
           <button
             key={f}
@@ -42,25 +42,25 @@ export default function AgendaTab({ data, update }) {
         ))}
       </div>
 
-      {apps.length === 0 && <div style={styles.empty}>Nenhum agendamento encontrado.</div>}
+      {apps.length === 0 && <div className="empty">Nenhum agendamento encontrado.</div>}
 
       {apps.map((a) => {
         const svc = SERVICES.find((s) => s.id === a.service);
         const dateObj = new Date(`${a.date}T12:00:00`);
         return (
-          <div key={a.id} style={{ ...styles.apCard, opacity: a.status === 'cancelado' ? 0.5 : 1 }}>
-            <div style={styles.apLeft}>
-              <div style={styles.apDate}>{dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</div>
-              <div style={styles.apTime}>{a.time}</div>
+          <div key={a.id} className="ap-card" style={{ opacity: a.status === 'cancelado' ? 0.5 : 1 }}>
+            <div className="ap-left">
+              <div className="ap-date">{dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</div>
+              <div className="ap-time">{a.time}</div>
             </div>
-            <div style={styles.apMid}>
-              <div style={styles.apPhone}>{formatPhone(a.phone)}</div>
-              <div style={styles.apService}>
-                {svc?.label} {a.isFree && <span style={styles.freeBadge}>GRÁTIS</span>}
+            <div className="ap-mid">
+              <div className="ap-phone">{formatPhone(a.phone)}</div>
+              <div className="ap-service">
+                {svc?.label} {a.isFree && <span className="free-badge">GRÁTIS</span>}
               </div>
             </div>
-            <div style={styles.apRight}>
-              <span style={{ ...styles.badge, background: statusColor(a.status) }}>{a.status}</span>
+            <div className="ap-right">
+              <span className="badge" style={{ background: statusColor(a.status) }}>{a.status}</span>
               {a.status === 'agendado' && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                   <button className="btn-sm-success" onClick={() => complete(a.id)}>✓</button>

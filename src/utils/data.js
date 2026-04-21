@@ -1,3 +1,6 @@
+// Importa as funções de sincronização com Supabase
+export { loadData, saveData } from './supabaseSync';
+
 export const STORAGE_KEY = "barbearia_data";
 
 export const defaultData = {
@@ -17,18 +20,6 @@ export const defaultData = {
   },
   barberPassword: "1234",
 };
-
-export function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaultData, ...JSON.parse(raw) };
-  } catch {}
-  return defaultData;
-}
-
-export function saveData(d) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-}
 
 export const SERVICES = [
   { id: "corte", label: "Corte", price: "R$ 35" },

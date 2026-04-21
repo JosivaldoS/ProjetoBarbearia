@@ -1,0 +1,90 @@
+/* Home Screen */
+.home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, #1a0a00 0%, #0a0a0a 60%, #0d0d12 100%);
+  z-index: 0;
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.logo-wrap {
+  margin-bottom: 48px;
+}
+
+.logo-scissors {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 20px var(--gold));
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  margin: 0;
+}
+
+.logo-accent {
+  color: var(--gold);
+}
+
+.logo-sub {
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--muted);
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-arrow {
+  margin-left: 8px;
+}
+
+.home-decor {
+  position: absolute;
+  bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1;
+}
+
+.decor-line {
+  width: 60px;
+  height: 1px;
+  background: var(--muted);
+}
+
+.decor-text {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--muted);
+  font-family: var(--font-body);
+}

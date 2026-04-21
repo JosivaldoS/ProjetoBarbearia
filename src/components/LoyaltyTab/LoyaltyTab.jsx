@@ -1,14 +1,14 @@
-import { styles } from "../styles";
-import { formatPhone } from "../utils/data";
+import { formatPhone } from "../../utils/data";
+import "./LoyaltyTab.css";
 
 export default function LoyaltyTab({ data, update }) {
   const cfg = data.loyaltyConfig;
 
   return (
-    <div style={styles.formCard}>
-      <h3 style={styles.cardTitle}>⭐ Programa de Fidelidade</h3>
-      <div style={styles.toggleRow}>
-        <span style={styles.rowLabel}>Ativar Fidelidade</span>
+    <div className="form-card">
+      <h3 className="card-title">⭐ Programa de Fidelidade</h3>
+      <div className="toggle-row">
+        <span className="row-label">Ativar Fidelidade</span>
         <button
           className={`toggle ${cfg.enabled ? "on" : ""}`}
           onClick={() =>
@@ -24,9 +24,9 @@ export default function LoyaltyTab({ data, update }) {
 
       {cfg.enabled && (
         <>
-          <div style={styles.row}>
-            <span style={styles.rowLabel}>Cortes para ganhar 1 grátis</span>
-            <div style={styles.counter}>
+          <div className="row">
+            <span className="row-label">Cortes para ganhar 1 grátis</span>
+            <div className="counter">
               <button
                 className="btn-sm"
                 onClick={() =>
@@ -38,7 +38,7 @@ export default function LoyaltyTab({ data, update }) {
               >
                 −
               </button>
-              <span style={styles.counterVal}>{cfg.cutsRequired}</span>
+              <span className="counter-val">{cfg.cutsRequired}</span>
               <button
                 className="btn-sm"
                 onClick={() =>
@@ -52,20 +52,20 @@ export default function LoyaltyTab({ data, update }) {
               </button>
             </div>
           </div>
-          <p style={styles.cardSub}>
+          <p className="card-sub">
             A cada <strong>{cfg.cutsRequired}</strong> cortes realizados, o próximo será gratuito automaticamente.
           </p>
         </>
       )}
 
-      <h3 style={{ ...styles.sectionTitle, marginTop: 32 }}>Visão Geral dos Clientes</h3>
+      <h3 className="section-title" style={{ marginTop: 32 }}>Visão Geral dos Clientes</h3>
       {Object.values(data.clients).map((c) => (
-        <div key={c.phone} style={styles.loyaltyRow}>
-          <span style={styles.apPhone}>{formatPhone(c.phone)}</span>
-          <span style={styles.cardSub}>{c.cuts || 0} corte{(c.cuts || 0) !== 1 ? 's' : ''}</span>
-          {c.freeNext && <span style={styles.freeBadge}>GRÁTIS</span>}
+        <div key={c.phone} className="loyalty-row">
+          <span className="ap-phone">{formatPhone(c.phone)}</span>
+          <span className="card-sub">{c.cuts || 0} corte{(c.cuts || 0) !== 1 ? 's' : ''}</span>
+          {c.freeNext && <span className="free-badge">GRÁTIS</span>}
           {cfg.enabled && !c.freeNext && (
-            <span style={styles.cardSub}>
+            <span className="card-sub">
               Faltam {cfg.cutsRequired - ((c.cuts || 0) % cfg.cutsRequired)}
             </span>
           )}
@@ -87,7 +87,7 @@ export default function LoyaltyTab({ data, update }) {
           </button>
         </div>
       ))}
-      {Object.keys(data.clients).length === 0 && <div style={styles.empty}>Nenhum cliente cadastrado ainda.</div>}
+      {Object.keys(data.clients).length === 0 && <div className="empty">Nenhum cliente cadastrado ainda.</div>}
     </div>
   );
 }

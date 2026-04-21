@@ -1,0 +1,219 @@
+/* Client Flow - Phone step, service selection, date/time selection */
+
+.form-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.card-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  font-family: var(--font-body);
+}
+
+.input:focus {
+  border-color: var(--muted);
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--muted-light);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.service-card {
+  padding: 14px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.service-card:hover {
+  border-color: var(--muted);
+}
+
+.service-card.active {
+  border-color: var(--gold);
+  background: #1a1500;
+}
+
+.service-label {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.service-price {
+  display: block;
+  color: var(--gold);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.day-grid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.day-card {
+  min-width: 56px;
+  padding: 10px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.day-card.active {
+  border-color: var(--gold);
+  background: #1a1500;
+}
+
+.day-name {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.day-num {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.time-slot {
+  padding: 10px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.time-slot.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.time-slot:hover:not(.active) {
+  border-color: var(--muted);
+}
+
+.confirm-card {
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.row-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.row-value {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #000;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-weight: 700;
+}
+
+.welcome-bar {
+  background: #052e16;
+  border: 1px solid #16a34a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #86efac;
+  font-size: 14px;
+}
+
+.free-bar {
+  background: #1a1200;
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: var(--gold);
+  font-size: 14px;
+}
