@@ -1,6 +1,8 @@
 import "./LoyaltyBadge.css";
 
 export default function LoyaltyBadge({ client, config }) {
+  // Essa função funciona assim: o cliente tem um número de cortes acumulados, e a cada X cortes (definidos em config) ele ganha um corte grátis. O badge mostra o progresso atual e quantos cortes faltam para o próximo grátis.
+
   if (!config.enabled || !client) return null;
 
   const cuts = client.cuts || 0;

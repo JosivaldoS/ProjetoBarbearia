@@ -1,6 +1,7 @@
 import "./HomeScreen.css";
 
 export default function HomeScreen({ setView }) {
+  // Essa função funciona assim: quando o usuário clicar em "Agendar Horário", a função setView será chamada com o argumento "client", o que provavelmente mudará a visualização para a tela de agendamento. Da mesma forma, quando o usuário clicar em "Painel do Barbeiro", a função setView será chamada com o argumento "barber", mudando a visualização para o painel do barbeiro.
   return (
     <div className="home">
       <div className="home-bg" />

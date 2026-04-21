@@ -6,6 +6,8 @@ import ClientsTab from "../ClientsTab/ClientsTab";
 import "./BarberPanel.css";
 
 export default function BarberPanel({ data, update, setView, auth, setAuth }) {
+  // Essa função funciona assim: quando o barbeiro tenta acessar o painel, ele precisa digitar a senha. Se a senha estiver correta, ele ganha acesso ao painel. Se não, ele vê uma mensagem de erro. O estado "auth" controla se o barbeiro está autenticado ou não. O estado "pw" armazena a senha digitada, e "pwError" indica se houve um erro na autenticação.
+
   const [pw, setPw] = useState("");
   const [tab, setTab] = useState("agenda");
   const [pwError, setPwError] = useState(false);

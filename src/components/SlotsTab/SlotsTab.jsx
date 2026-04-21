@@ -1,13 +1,13 @@
 import "./SlotsTab.css";
 
 export default function SlotsTab({ data, update }) {
+  // Essa função funciona assim: ela gera uma lista de horários disponíveis para cada dia da semana, começando às 8h e terminando às 19h, com intervalos de 30 minutos. A função padStart é usada para garantir que os horários sejam formatados corretamente, com dois dígitos para as horas e os minutos. O resultado é uma lista de strings no formato "HH:MM", como "08:00", "08:30", "09:00", etc.
   const allTimes = [];
   for (let h = 8; h <= 19; h += 1) {
     allTimes.push(`${String(h).padStart(2, "0")}:00`);
     allTimes.push(`${String(h).padStart(2, "0")}:30`);
   }
 
-  // Aqui é onde a mágica acontece: quando o usuário clica em um horário, ele é adicionado ou removido da lista de horários disponíveis para aquele dia da semana. A função toggle recebe o dia da semana (dow) e o horário (time) e atualiza o estado do componente usando a função update. Ela verifica se o horário já está na lista de horários disponíveis para aquele dia; se estiver, ele é removido, caso contrário, é adicionado. Depois disso, a lista de horários para aquele dia é ordenada para manter uma ordem consistente.
   const toggle = (dow, time) =>
     update((d) => {
       if (!d.availableSlots[dow]) d.availableSlots[dow] = [];

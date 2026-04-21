@@ -2,6 +2,8 @@ import { formatPhone } from "../../utils/data";
 import "./LoyaltyTab.css";
 
 export default function LoyaltyTab({ data, update }) {
+  // Essa função funciona assim: o cliente ganha um corte grátis a cada X cortes realizados. O número X é configurável aqui. O sistema conta quantos cortes cada cliente tem e, quando atinge o número X, marca o próximo corte como grátis. O cliente pode usar esse corte grátis na próxima visita, e então o contador de cortes volta a zero para ele.
+
   const cfg = data.loyaltyConfig;
 
   return (

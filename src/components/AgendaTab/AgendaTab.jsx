@@ -3,6 +3,7 @@ import { SERVICES, dateKey, formatPhone, statusColor } from "../../utils/data";
 import "./AgendaTab.css";
 
 export default function AgendaTab({ data, update }) {
+  // Este código aqui funciona assim: tem um estado "filter" que controla qual filtro de agendamento está ativo. O usuário pode escolher entre "todos", "hoje", "futuros" e "pendentes". Com base nesse filtro, a lista de agendamentos é filtrada e exibida. Além disso, cada agendamento tem botões para marcar como concluído ou cancelar, que atualizam o status do agendamento no estado global.
   const [filter, setFilter] = useState("todos");
   const today = dateKey(new Date());
 

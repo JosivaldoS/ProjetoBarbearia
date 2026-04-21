@@ -5,6 +5,8 @@ import Row from "../common/Row";
 import "./ClientFlow.css";
 
 export default function ClientFlow({ data, update, setView }) {
+  // Essa função funciona assim: o cliente entra com seu telefone, escolhe um serviço, depois escolhe um dia e horário disponíveis. Se for um cliente novo, ele recebe uma mensagem de boas-vindas. Se for um cliente que já tem cortes anteriores, ele pode ganhar um corte gratuito dependendo do número de cortes que já fez. Depois de confirmar o agendamento, ele vê uma tela de confirmação com os detalhes do horário marcado.
+
   const [step, setStep] = useState("phone");
   const [phone, setPhone] = useState("");
   const [isNew, setIsNew] = useState(false);
