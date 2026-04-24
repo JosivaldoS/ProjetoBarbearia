@@ -217,3 +217,129 @@
   color: var(--gold);
   font-size: 14px;
 }
+
+/* Barber Selection Grid */
+.barber-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.barber-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.barber-card:hover {
+  border-color: var(--muted);
+  background: var(--surface3);
+}
+
+.barber-card.active {
+  border-color: var(--gold);
+  background: #1a1500;
+}
+
+.barber-avatar-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.barber-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.barber-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.barber-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Payment Options */
+.payment-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.payment-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-card:hover {
+  border-color: var(--muted);
+  background: var(--surface3);
+}
+
+.payment-card.active {
+  border-color: var(--gold);
+  background: #1a1500;
+}
+
+.payment-icon {
+  font-size: 32px;
+}
+
+.payment-label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.payment-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pix-badge {
+  background: #0a3d1f;
+  color: #4ade80;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+}

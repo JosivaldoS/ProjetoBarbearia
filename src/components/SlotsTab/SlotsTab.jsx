@@ -1,44 +1,33 @@
 import "./SlotsTab.css";
 
-export default function SlotsTab({ dados, atualizarDados }) {
-  // Essa função funciona assim: ela gera uma lista de horários disponíveis para cada dia da semana, começando às 8h e terminando às 19h, com intervalos de 30 minutos. A função padStart é usada para garantir que os horários sejam formatados corretamente, com dois dígitos para as horas e os minutos. O resultado é uma lista de strings no formato "HH:MM", como "08:00", "08:30", "09:00", etc.
-  const allTimes = [];
-  for (let h = 8; h <= 19; h += 1) {
-    allTimes.push(`${String(h).padStart(2, "0")}:00`);
-    allTimes.push(`${String(h).padStart(2, "0")}:30`);
-  }
+/**
+ * AbaHorarios — configuração de horários do barbeiro logado.
+ * Cada barbeiro tem agenda independente.
+ */
+export default function SlotsTab({ dados, atualizarDados, barbeiro }) {
+  const alternar = (dia, horario) => atualizarDados(d => {
+    if (!d.horariosPorBarbeiro[barbeiro.id])
+      d.horariosPorBarbeiro[barbeiro.id] = structuredClone(d.horariosGlobais);
+    const cfg = d.horariosPorBarbeiro[barbeiro.id];
+    if (!cfg[dia]) cfg[dia] = [];
+    const idx = cfg[dia].indexOf(horario);
+    if (idx > -1) cfg[dia].splice(idx, 1);
+    else { cfg[dia].push(horario); cfg[dia].sort(); }
+    return d;
+  });
 
-  const toggle = (dow, time) =>
-    atualizarDados((d) => {
-      if (!d.availableSlots[dow]) d.availableSlots[dow] = [];
-      const idx = d.availableSlots[dow].indexOf(time);
-      if (idx > -1) d.availableSlots[dow].splice(idx, 1);
-      else d.availableSlots[dow].push(time);
-      d.availableSlots[dow].sort();
-      return d;
-    });
+  const ativos = dia => dados.horariosPorBarbeiro?.[barbeiro.id]?.[dia] || dados.horariosGlobais?.[dia] || [];
 
   return (
     <div>
-      <p className="card-sub">Clique nos horários para ativar/desativar por dia da semana.</p>
-      {[1, 2, 3, 4, 5, 6].map((dow) => (
-        <div key={dow} className="slot-day">
-          <h4 className="slot-day-name">
-            {['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][dow]}
-          </h4>
+      <p className="card-sub">Configure seus horários de atendimento. Clique para ativar/desativar.</p>
+      {[1,2,3,4,5,6].map(dia => (
+        <div key={dia} className="slot-day">
+          <h4 className="slot-day-name">{["","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][dia]}</h4>
           <div className="slot-grid">
-            {allTimes.map((t) => {
-              const active = (dados.availableSlots[dow] || []).includes(t);
-              return (
-                <button
-                  key={t}
-                  className={`slot-toggle ${active ? 'active' : ''}`}
-                  onClick={() => toggle(dow, t)}
-                >
-                  {t}
-                </button>
-              );
-            })}
+            {ativos(dia).map(h => (
+              <button key={h} className={`slot-toggle active`} onClick={() => alternar(dia, h)}>{h}</button>
+            ))}
           </div>
         </div>
       ))}

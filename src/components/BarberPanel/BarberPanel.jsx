@@ -6,130 +6,102 @@ import ClientsTab from "../ClientsTab/ClientsTab";
 import "./BarberPanel.css";
 
 /**
- * Componente do painel administrativo do barbeiro
- * Controla autenticação e gerencia as abas de funcionalidades
- * 
- * @param {Object} dados - Dados globais da aplicação
- * @param {Function} atualizarDados - Função para atualizar o estado global
- * @param {Function} setTelaAtual - Função para navegar entre telas
- * @param {boolean} autenticado - Indica se o barbeiro está autenticado
- * @param {Function} setAutenticado - Função para alterar estado de autenticação
+ * PainelBarbeiro — área administrativa protegida por senha.
+ * Login: selecionar barbeiro + senha individual (ou senha global legada).
  */
-export default function PainelBarbeiro({ dados, atualizarDados, setTelaAtual, autenticado, setAutenticado }) {
-  // Senha digitada pelo usuário no campo de autenticação
-  const [senhaDigitada, setSenhaDigitada] = useState("");
-  
-  // Aba atual do painel: 'agenda', 'slots', 'loyalty', 'clients'
-  const [abaAtual, setAbaAtual] = useState("agenda");
-  
-  // Indica se houve erro na autenticação (senha incorreta)
+export default function PainelBarbeiro({ dados, atualizarDados, setTelaAtual, barbeiroAutenticado, setBarbeiroAutenticado }) {
+  const [aba, setAba] = useState("agenda");
+  const [barbeiroLogin, setBarbeiroLogin] = useState(null);
+  const [senha, setSenha] = useState("");
   const [erroSenha, setErroSenha] = useState(false);
 
-  // Se não estiver autenticado, mostra tela de login
-  if (!autenticado) {
+  /** Autentica barbeiro comparando senha individual ou global */
+  const handleLogin = () => {
+    if (!barbeiroLogin) return;
+    const correto = senha === barbeiroLogin.senha || senha === dados.barberPassword;
+    if (correto) setBarbeiroAutenticado(barbeiroLogin);
+    else setErroSenha(true);
+  };
+
+  // ── Tela de login ──────────────────────────────────────────
+  if (!barbeiroAutenticado) {
     return (
       <div className="panel">
         <header className="panel-header">
-          <button className="btn-back" onClick={() => setTelaAtual("home")}>
-            ← Voltar
-          </button>
+          <button className="btn-back" onClick={() => setTelaAtual("home")}>← Voltar</button>
           <h2 className="panel-title">Área do Barbeiro</h2>
           <div />
         </header>
         <div className="panel-body">
           <div className="fade-in form-card">
-            <div style={{ textAlign: "center", marginBottom: 24 }}>
-              <span style={{ fontSize: 48 }}>🔐</span>
+            <div style={{ textAlign:"center", marginBottom:24 }}>
+              <span style={{ fontSize:48 }}>🔐</span>
               <h3 className="card-title">Acesso Restrito</h3>
-              <p className="card-sub">Digite a senha do barbeiro</p>
+              <p className="card-sub">Selecione seu perfil e digite a senha</p>
             </div>
-            <input
-              type="password"
-              className="input"
-              placeholder="Senha"
-              value={senhaDigitada}
-              onChange={(e) => {
-                setSenhaDigitada(e.target.value);
-                setErroSenha(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  // Verifica se a senha digitada corresponde à senha cadastrada
-                  if (senhaDigitada === dados.barberPassword) {
-                    setAutenticado(true);
-                  } else {
-                    setErroSenha(true);
-                  }
-                }
-              }}
-            />
-            {erroSenha && <p className="error">Senha incorreta. (padrão: 1234)</p>}
-            <button
-              className="btn-primary"
-              style={{ width: "100%", marginTop: 16 }}
-              onClick={() => {
-                // Verifica se a senha digitada corresponde à senha cadastrada
-                if (senhaDigitada === dados.barberPassword) {
-                  setAutenticado(true);
-                } else {
-                  setErroSenha(true);
-                }
-              }}
-            >
-              Entrar
-            </button>
+            <div className="barber-grid">
+              {dados.barbeiros?.map(b => (
+                <button key={b.id} className={`barber-card ${barbeiroLogin?.id===b.id?"active":""}`}
+                  onClick={() => { setBarbeiroLogin(b); setErroSenha(false); setSenha(""); }}>
+                  <span className="barber-avatar-large">{b.nome.charAt(0)}</span>
+                  <span className="barber-name">{b.nome}</span>
+                </button>
+              ))}
+            </div>
+            {barbeiroLogin && (
+              <>
+                <input type="password" className="input" style={{ marginTop:16 }} placeholder={`Senha de ${barbeiroLogin.nome}`}
+                  value={senha} onChange={e => { setSenha(e.target.value); setErroSenha(false); }}
+                  onKeyDown={e => e.key==="Enter" && handleLogin()} />
+                {erroSenha && <p className="error">Senha incorreta.</p>}
+                <button className="btn-primary" style={{ width:"100%", marginTop:16 }} onClick={handleLogin}>Entrar</button>
+              </>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-  /**
-   * Configuração das abas disponíveis no painel do barbeiro
-   * Cada aba representa uma funcionalidade administrativa
-   */
-  const abasDisponiveis = [
-    { id: "agenda", label: "📅 Agenda" },
-    { id: "slots", label: "⏰ Horários" },
-    { id: "loyalty", label: "⭐ Fidelidade" },
-    { id: "clients", label: "👥 Clientes" },
+  // ── Painel autenticado ──────────────────────────────────────
+  // eAdmin determina quais abas e permissões o usuário logado possui
+  const eAdmin = !!barbeiroAutenticado.eAdmin;
+
+  const abas = [
+    { id:"agenda", label:"📅 Agenda" },
+    { id:"horarios", label:"⏰ Horários" },
+    { id:"fidelidade", label:"⭐ Fidelidade" },
+    { id:"clientes", label:"👥 Clientes" },
+    { id:"servicos", label:"💈 Serviços" },
+    // Aba de gerenciamento da equipe: EXCLUSIVA do administrador
+    ...(eAdmin ? [{ id:"barbeiros", label:"✂️ Equipe" }] : []),
+    { id:"qrcode", label:"🔳 QR Code" },
   ];
 
   return (
     <div className="panel">
       <header className="panel-header">
-        <button
-          className="btn-back"
-          onClick={() => {
-            // Faz logout do barbeiro e retorna à tela inicial
-            setAutenticado(false);
-            setTelaAtual("home");
-          }}
-        >
-          ← Sair
-        </button>
-        <h2 className="panel-title">Painel do Barbeiro</h2>
+        <button className="btn-back" onClick={() => { setBarbeiroAutenticado(null); setTelaAtual("home"); }}>← Sair</button>
+        <h2 className="panel-title">
+          Olá, {barbeiroAutenticado.nome} {eAdmin ? "👑" : "✂"}
+        </h2>
         <div />
       </header>
-
       <div className="tab-bar">
-        {abasDisponiveis.map((aba) => (
-          <button
-            key={aba.id}
-            className={`tab-btn ${abaAtual === aba.id ? "active" : ""}`}
-            onClick={() => setAbaAtual(aba.id)}
-          >
-            {aba.label}
-          </button>
+        {abas.map(a => (
+          <button key={a.id} className={`tab-btn ${aba===a.id?"active":""}`} onClick={() => setAba(a.id)}>{a.label}</button>
         ))}
       </div>
-
       <div className="panel-body">
-        {/* Renderização condicional das abas com base na aba selecionada */}
-        {abaAtual === "agenda" && <AgendaTab dados={dados} atualizarDados={atualizarDados} />}
-        {abaAtual === "slots" && <SlotsTab dados={dados} atualizarDados={atualizarDados} />}
-        {abaAtual === "loyalty" && <LoyaltyTab dados={dados} atualizarDados={atualizarDados} />}
-        {abaAtual === "clients" && <ClientsTab dados={dados} atualizarDados={atualizarDados} />}
+        {/* Admin vê todos os agendamentos; barbeiro comum vê apenas os seus */}
+        {aba === "agenda"     && <AgendaTab dados={dados} atualizarDados={atualizarDados} barbeiro={barbeiroAutenticado} eAdmin={eAdmin} />}
+        {aba === "horarios"   && <SlotsTab dados={dados} atualizarDados={atualizarDados} barbeiro={barbeiroAutenticado} />}
+        {aba === "fidelidade" && <LoyaltyTab dados={dados} atualizarDados={atualizarDados} />}
+        {aba === "clientes"   && <ClientsTab dados={dados} atualizarDados={atualizarDados} />}
+        {aba === "servicos"   && <div className="form-card"><h3 className="card-title">💈 Serviços</h3><p className="card-sub">TODO: Implementar AbaServicos</p></div>}
+        {/* Aba Barbeiros: renderizada somente se eAdmin (dupla proteção além da ocultação da aba) */}
+        {aba === "barbeiros" && eAdmin && <div className="form-card"><h3 className="card-title">✂️ Equipe</h3><p className="card-sub">TODO: Implementar AbaBarbeiros</p></div>}
+        {aba === "qrcode"     && <div className="form-card"><h3 className="card-title">🔳 QR Code</h3><p className="card-sub">TODO: Implementar AbaQRCode</p></div>}
       </div>
     </div>
   );

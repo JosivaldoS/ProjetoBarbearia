@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { loadData, saveData, defaultData } from "./utils/data";
 import TelaInicial from "./components/HomeScreen/HomeScreen";
 import FluxoCliente from "./components/ClientFlow/ClientFlow";
@@ -7,6 +7,7 @@ import PainelBarbeiro from "./components/BarberPanel/BarberPanel";
 /**
  * Componente principal da aplicação Barbearia
  * Gerencia o estado global, navegação entre telas e persistência de dados
+ * Suporta multi-barbeiros com autenticação individual
  */
 export default function App() {
   // Estado global contendo todos os dados da aplicação (clientes, agendamentos, etc.)
@@ -15,8 +16,11 @@ export default function App() {
   // Controla qual tela está sendo exibida: 'home', 'client' ou 'barber'
   const [telaAtual, setTelaAtual] = useState("home");
   
-  // Indica se o barbeiro está autenticado no painel administrativo
-  const [barbeiroAutenticado, setBarbeiroAutenticado] = useState(false);
+  // Armazena o barbeiro autenticado (objeto completo com id, nome, senha, eAdmin)
+  const [barbeiroAutenticado, setBarbeiroAutenticado] = useState(null);
+  
+  // Armazena barbeiro pré-selecionado para Flow B (agendamento direto)
+  const [barbeiroPreSelecionado, setBarbeiroPreSelecionado] = useState(null);
   
   // Estado de carregamento enquanto os dados são carregados do storage
   const [carregando, setCarregando] = useState(true);
@@ -42,19 +46,31 @@ export default function App() {
   }, []);
 
   /**
-   * Função wrapper para atualizar o estado de forma imutável
-   * Garante que os dados sejam clonados antes da modificação e salvos após
-   * @param {Function} funcaoAtualizacao - Função que recebe os dados atuais e retorna os dados atualizados
+   * Função central de mutação de estado.
+   * Recebe fn pura → clona estado → aplica → salva localStorage → atualiza React.
+   * SEMPRE use atualizarDados() para modificar dados. Nunca mute o estado diretamente.
    */
-  const atualizarDados = (funcaoAtualizacao) => setDadosAplicacao((dadosAnteriores) => {
-    // Cria uma cópia profunda para evitar mutação direta do estado
-    const dadosAtualizados = funcaoAtualizacao(structuredClone(dadosAnteriores));
-    
-    // Persiste as alterações no storage (localStorage/Supabase)
-    saveData(dadosAtualizados);
-    
-    return dadosAtualizados;
-  });
+  const atualizarDados = useCallback((funcaoAtualizacao) => {
+    setDadosAplicacao((dadosAnteriores) => {
+      // Cria uma cópia profunda para evitar mutação direta do estado
+      const dadosAtualizados = funcaoAtualizacao(structuredClone(dadosAnteriores));
+      
+      // Persiste as alterações no storage (localStorage/Supabase)
+      saveData(dadosAtualizados);
+      
+      return dadosAtualizados;
+    });
+  }, []);
+
+  /**
+   * Navega para agendamento, opcionalmente com barbeiro já selecionado (Flow B)
+   * Flow A (padrão): barbeiro = null → cliente escolhe barbeiro
+   * Flow B (direto): barbeiro = objeto → pula etapa de escolha de barbeiro
+   */
+  const irParaAgendamento = (barbeiro = null) => {
+    setBarbeiroPreSelecionado(barbeiro);
+    setTelaAtual("client");
+  };
 
   // Tela de carregamento enquanto os dados são inicializados
   if (carregando) {
@@ -72,7 +88,13 @@ export default function App() {
   return (
     <div>
       {/* Tela inicial - Boas-vindas e navegação principal */}
-      {telaAtual === "home" && <TelaInicial setTelaAtual={setTelaAtual} />}
+      {telaAtual === "home" && (
+        <TelaInicial 
+          dados={dadosAplicacao} 
+          setTelaAtual={setTelaAtual} 
+          irParaAgendamento={irParaAgendamento} 
+        />
+      )}
       
       {/* Tela do cliente - Fluxo completo de agendamento */}
       {telaAtual === "client" && (
@@ -80,6 +102,7 @@ export default function App() {
           dados={dadosAplicacao} 
           atualizarDados={atualizarDados} 
           setTelaAtual={setTelaAtual} 
+          barbeiroPreSelecionado={barbeiroPreSelecionado}
         />
       )}
       
@@ -89,8 +112,8 @@ export default function App() {
           dados={dadosAplicacao}
           atualizarDados={atualizarDados}
           setTelaAtual={setTelaAtual}
-          autenticado={barbeiroAutenticado}
-          setAutenticado={setBarbeiroAutenticado}
+          barbeiroAutenticado={barbeiroAutenticado}
+          setBarbeiroAutenticado={setBarbeiroAutenticado}
         />
       )}
     </div>

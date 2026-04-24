@@ -1,36 +1,70 @@
 // import { supabase } from './supabase'; // Desativado para eliminar demora no carregamento
+import { defaultData } from './data';
 
 const STORAGE_KEY = "barbearia_data";
 
-export const defaultData = {
-  clients: {},
-  appointments: [],
-  availableSlots: {
-    1: ["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"],
-    2: ["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"],
-    3: ["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"],
-    4: ["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"],
-    5: ["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"],
-    6: ["09:00","09:30","10:00","10:30","11:00"],
-  },
-  loyaltyConfig: {
-    enabled: true,
-    cutsRequired: 5,
-  },
-  barberPassword: "1234",
-};
-
-// Carrega dados do localStorage - versão ultra rápida sem Supabase
+/**
+ * Carrega dados do localStorage com migração automática de v1 → v2 → v3
+ * Sistema de migração garante compatibilidade com dados salvos em versões anteriores
+ */
 export async function loadData() {
   try {
-    // Carrega diretamente do localStorage sem nenhuma tentativa de conexão externa
     const raw = localStorage.getItem(STORAGE_KEY);
-    const localData = raw ? { ...defaultData, ...JSON.parse(raw) } : defaultData;
+    if (!raw) return defaultData;
     
-    console.log('ðŸ’» Dados carregados do localStorage (modo offline)');
-    return localData;
+    const salvo = JSON.parse(raw);
+
+    // Migração: loyaltyConfig → fidelidadeConfig
+    const fidelidadeConfig = salvo.fidelidadeConfig || (salvo.loyaltyConfig
+      ? { ativo: salvo.loyaltyConfig.enabled, cortesNecessarios: salvo.loyaltyConfig.cutsRequired }
+      : defaultData.fidelidadeConfig);
+
+    // Migração: availableSlots → horariosGlobais
+    const horariosGlobais = salvo.horariosGlobais || salvo.availableSlots || defaultData.horariosGlobais;
+
+    // Migração: clients → clientes (formato antigo)
+    const clientes = salvo.clientes || {};
+    if (salvo.clients && !salvo.clientes) {
+      Object.entries(salvo.clients).forEach(([tel, c]) => {
+        clientes[tel] = { telefone: tel, nome: c.name, cortes: c.cuts || 0, proximoGratis: c.freeNext || false };
+      });
+    }
+
+    // Migração: appointments → agendamentos (formato antigo)
+    const agendamentos = salvo.agendamentos || [];
+    if (salvo.appointments && !salvo.agendamentos) {
+      salvo.appointments.forEach(a => agendamentos.push({
+        id: a.id, telefone: a.phone, barbeiroId: a.barberId || null,
+        data: a.date, horario: a.time, servicoId: a.service, status: a.status,
+        // concluido é derivado do status para compatibilidade com dados v1
+        concluido: a.status === "concluído",
+        eGratis: a.isFree || false, pagamento: "presencial", codigoPix: null,
+      }));
+    }
+
+    // Migração: garante campo concluido em agendamentos salvos sem ele (v2 → v3)
+    agendamentos.forEach(a => {
+      if (a.concluido === undefined) {
+        // Inferência: se status é "concluído", concluido deve ser true
+        a.concluido = a.status === "concluído";
+      }
+    });
+
+    return {
+      ...defaultData, ...salvo,
+      fidelidadeConfig, horariosGlobais, clientes, agendamentos,
+      // Garante que o admin sempre existe — mesmo em dados salvos antes desta versão
+      barbeiros: (() => {
+        const lista = salvo.barbeiros || defaultData.barbeiros;
+        const temAdmin = lista.some(b => b.id === "admin");
+        if (!temAdmin) return [defaultData.barbeiros[0], ...lista]; // injeta admin no topo
+        return lista;
+      })(),
+      servicos: salvo.servicos || defaultData.servicos,
+      horariosPorBarbeiro: salvo.horariosPorBarbeiro || {},
+    };
   } catch {
-    console.log('â¤ï¸ Erro ao carregar localStorage, usando dados padrão');
+    console.log('❌ Erro ao carregar localStorage, usando dados padrão');
     return defaultData;
   }
 }

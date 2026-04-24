@@ -1,40 +1,51 @@
 import "./LoyaltyBadge.css";
+import { contarCortesReais } from "../../utils/data";
 
-export default function LoyaltyBadge({ client, config }) {
-  // Essa função funciona assim: o cliente tem um número de cortes acumulados, e a cada X cortes (definidos em config) ele ganha um corte grátis. O badge mostra o progresso atual e quantos cortes faltam para o próximo grátis.
+/**
+ * BadgeFidelidade — exibe progresso real de fidelidade do cliente.
+ *
+ * IMPORTANTE: usa contarCortesReais() para exibir apenas cortes
+ * efetivamente concluídos. Nunca exibe agendamentos futuros como progresso.
+ *
+ * @prop {object} cliente      — dados do cliente (telefone, nome, proximoGratis)
+ * @prop {object} config       — fidelidadeConfig (ativo, cortesNecessarios)
+ * @prop {Array}  agendamentos — lista completa para calcular cortes reais
+ */
+export default function LoyaltyBadge({ client, config, agendamentos = [] }) {
+  if (!config.ativo || !client) return null;
 
-  if (!config.enabled || !client) return null;
+  // Cortes reais = apenas agendamentos com concluido: true (não futuros)
+  const cortesReais = contarCortesReais(agendamentos, client.telefone);
+  const necessarios = config.cortesNecessarios;
 
-  const cuts = client.cuts || 0;
-  const req = config.cutsRequired;
-  const progress = cuts % req;
-  const pct = (progress / req) * 100;
+  // Progresso dentro do ciclo atual (ex: 3 de 5)
+  const progressoCiclo = cortesReais % necessarios;
+  const porcentagem = (progressoCiclo / necessarios) * 100;
+
+  // Gratuidade é real somente se os cortes reais confirmam
+  const temGratuidade = client.proximoGratis && cortesReais > 0 && cortesReais % necessarios === 0;
 
   return (
     <div className="loyalty-badge">
       <div className="loyalty-top">
         <span className="loyalty-title">✂ Fidelidade</span>
-        {client.freeNext ? (
-          <span className="loyalty-free">GRÁTIS DISPONÍVEL!</span>
-        ) : (
-          <span className="loyalty-count">{progress}/{req} cortes</span>
-        )}
+        {temGratuidade
+          ? <span className="loyalty-free">GRÁTIS DISPONÍVEL!</span>
+          : <span className="loyalty-count">{progressoCiclo}/{necessarios} cortes concluídos</span>
+        }
       </div>
-
       <div className="loyalty-bar">
-        <div
-          className="loyalty-fill"
-          style={{
-            width: `${client.freeNext ? 100 : pct}%`,
-          }}
-        />
+        <div className="loyalty-fill" style={{ width:`${temGratuidade ? 100 : porcentagem}%` }} />
       </div>
-
-      {!client.freeNext && (
+      {!temGratuidade && (
         <p className="loyalty-sub">
-          Faltam <strong>{req - progress}</strong> corte{req - progress !== 1 ? "s" : ""} para o próximo gratuito!
+          Faltam <strong>{necessarios - progressoCiclo}</strong> corte{necessarios - progressoCiclo !== 1 ? "s" : ""} concluídos para o próximo gratuito!
         </p>
       )}
+      {/* Informa o total acumulado para transparência */}
+      <p className="loyalty-sub" style={{ marginTop:4 }}>
+        Total histórico: {cortesReais} corte{cortesReais !== 1 ? "s" : ""} realizados
+      </p>
     </div>
   );
 }
