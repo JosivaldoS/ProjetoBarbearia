@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+// import { supabase } from './supabase'; // Desativado para eliminar demora no carregamento
 
 const STORAGE_KEY = "barbearia_data";
 
@@ -20,151 +20,29 @@ export const defaultData = {
   barberPassword: "1234",
 };
 
-// Carrega dados do localStorage (fallback) e tenta sincronizar com Supabase
+// Carrega dados do localStorage - versão ultra rápida sem Supabase
 export async function loadData() {
   try {
-    // Carrega do localStorage como fallback
+    // Carrega diretamente do localStorage sem nenhuma tentativa de conexão externa
     const raw = localStorage.getItem(STORAGE_KEY);
     const localData = raw ? { ...defaultData, ...JSON.parse(raw) } : defaultData;
     
-    // Tenta carregar agendamentos do Supabase
-    try {
-      const { data: appointments, error } = await supabase
-        .from('agendamentos')
-        .select('*');
-      
-      if (error) throw error;
-      
-      // Converte dados do Supabase para o formato esperado
-      if (appointments && Array.isArray(appointments)) {
-        localData.appointments = appointments.map(apt => ({
-          id: apt.id,
-          phone: apt.phone || '',
-          date: apt.data, // Supabase tem 'data', app usa 'date'
-          time: apt.hora, // Supabase tem 'hora', app usa 'time'
-          service: apt.service || '',
-          status: apt.status || 'agendado',
-          isFree: apt.isFree || false,
-        }));
-        
-        // Marca todos os IDs do Supabase como sincronizados
-        const syncedKey = "barbearia_synced";
-        const syncedIds = appointments.map(apt => String(apt.id));
-        localStorage.setItem(syncedKey, JSON.stringify(syncedIds));
-        
-        console.log('✅ Agendamentos carregados do Supabase:', localData.appointments);
-      }
-    } catch (supabaseError) {
-      console.warn('⚠️ Erro ao sincronizar com Supabase:', supabaseError);
-      // Continua com dados do localStorage
-    }
-    
+    console.log('ðŸ’» Dados carregados do localStorage (modo offline)');
     return localData;
   } catch {
+    console.log('â¤ï¸ Erro ao carregar localStorage, usando dados padrão');
     return defaultData;
   }
 }
 
-// Salva dados - tanto localStorage quanto Supabase
+// Salva dados - versão ultra rápida usando apenas localStorage
 export async function saveData(d) {
-  // Salva no localStorage (fallback)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  
-  // Sincroniza agendamentos com Supabase
   try {
-    const appointments = d.appointments || [];
-    const syncedKey = "barbearia_synced";
-    const statusCacheKey = "barbearia_status_cache";
-    
-    console.log('📊 saveData chamado com', appointments.length, 'agendamentos');
-    
-    let syncedIds = new Set();
-    let statusCache = {};
-    
-    try {
-      const raw = localStorage.getItem(syncedKey);
-      if (raw) syncedIds = new Set(JSON.parse(raw));
-    } catch {}
-    
-    try {
-      const raw = localStorage.getItem(statusCacheKey);
-      if (raw) statusCache = JSON.parse(raw);
-    } catch {}
-    
-    console.log('🔍 Status cache atual:', statusCache);
-    
-    for (const apt of appointments) {
-      const aptIdStr = String(apt.id);
-      console.log(`\n📌 Processando agendamento ${apt.id} (status: ${apt.status})`);
-      
-      // Para agendamentos do Supabase (ID pequeno), faz UPDATE se status mudou ou não foi sincronizado
-      if (apt.id < 1000000) {
-        console.log(`✅ ID ${apt.id} é do Supabase (< 1000000)`);
-        const lastKnownStatus = statusCache[aptIdStr];
-        const needsUpdate = !lastKnownStatus || lastKnownStatus !== apt.status;
-        
-        console.log(`  Status anterior: ${lastKnownStatus || 'nunca sincronizado'}`);
-        console.log(`  Precisa atualizar? ${needsUpdate}`);
-        
-        if (needsUpdate) {
-          console.log(`🔄 Atualizando agendamento ${apt.id} para: ${apt.status}`);
-          const { error: updateError } = await supabase
-            .from('agendamentos')
-            .update({ status: apt.status })
-            .eq('id', apt.id);
-          
-          if (updateError) {
-            console.error('❌ Erro ao atualizar agendamento:', updateError);
-          } else {
-            console.log(`✅ Agendamento ${apt.id} atualizado para: ${apt.status}`);
-            statusCache[aptIdStr] = apt.status;
-            localStorage.setItem(statusCacheKey, JSON.stringify(statusCache));
-          }
-        }
-        continue;
-      }
-
-      // Pula agendamentos que já foram sincronizados (INSERT)
-      if (syncedIds.has(aptIdStr)) {
-        console.log(`⏭️ Agendamento ${apt.id} já foi sincronizado (INSERT)`);
-        statusCache[aptIdStr] = apt.status;
-        continue;
-      }
-
-      // Busca o nome do cliente a partir do phone
-      const client = d.clients?.[apt.phone] || {};
-      const clientName = client.name || `Cliente ${apt.phone}`;
-      
-      const payload = {
-        nome: clientName,
-        data: apt.date,
-        hora: apt.time,
-        phone: apt.phone,
-        service: apt.service || '',
-        status: apt.status || 'agendado',
-        isFree: apt.isFree || false,
-      };
-
-      // Insere apenas agendamentos locais (ID grande = Date.now())
-      if (apt.id && typeof apt.id === 'number' && apt.id > 1000000) {
-        console.log(`📝 ID ${apt.id} é local (> 1000000), inserindo...`);
-        const { error: insertError } = await supabase
-          .from('agendamentos')
-          .insert(payload);
-        
-        if (insertError) {
-          console.error('❌ Erro ao inserir agendamento:', insertError);
-        } else {
-          console.log('✅ Agendamento inserido:', payload);
-          syncedIds.add(aptIdStr);
-          statusCache[aptIdStr] = apt.status;
-          localStorage.setItem(syncedKey, JSON.stringify([...syncedIds]));
-          localStorage.setItem(statusCacheKey, JSON.stringify(statusCache));
-        }
-      }
-    }
+    // Salva diretamente no localStorage sem nenhuma tentativa de conexão externa
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+    console.log('ðŸ’» Dados salvos no localStorage (modo offline)');
   } catch (error) {
-    console.error('❌ Erro geral ao salvar em Supabase:', error);
+    console.error('â¤ï¸ Erro ao salvar dados:', error);
   }
 }
 

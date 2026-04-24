@@ -1,6 +1,6 @@
 import "./SlotsTab.css";
 
-export default function SlotsTab({ data, update }) {
+export default function SlotsTab({ dados, atualizarDados }) {
   // Essa função funciona assim: ela gera uma lista de horários disponíveis para cada dia da semana, começando às 8h e terminando às 19h, com intervalos de 30 minutos. A função padStart é usada para garantir que os horários sejam formatados corretamente, com dois dígitos para as horas e os minutos. O resultado é uma lista de strings no formato "HH:MM", como "08:00", "08:30", "09:00", etc.
   const allTimes = [];
   for (let h = 8; h <= 19; h += 1) {
@@ -9,7 +9,7 @@ export default function SlotsTab({ data, update }) {
   }
 
   const toggle = (dow, time) =>
-    update((d) => {
+    atualizarDados((d) => {
       if (!d.availableSlots[dow]) d.availableSlots[dow] = [];
       const idx = d.availableSlots[dow].indexOf(time);
       if (idx > -1) d.availableSlots[dow].splice(idx, 1);
@@ -28,7 +28,7 @@ export default function SlotsTab({ data, update }) {
           </h4>
           <div className="slot-grid">
             {allTimes.map((t) => {
-              const active = (data.availableSlots[dow] || []).includes(t);
+              const active = (dados.availableSlots[dow] || []).includes(t);
               return (
                 <button
                   key={t}

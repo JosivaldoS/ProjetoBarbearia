@@ -4,98 +4,174 @@ import LoyaltyBadge from "../LoyaltyBadge";
 import Row from "../common/Row";
 import "./ClientFlow.css";
 
-export default function ClientFlow({ data, update, setView }) {
-  // Essa função funciona assim: o cliente entra com seu telefone, escolhe um serviço, depois escolhe um dia e horário disponíveis. Se for um cliente novo, ele recebe uma mensagem de boas-vindas. Se for um cliente que já tem cortes anteriores, ele pode ganhar um corte gratuito dependendo do número de cortes que já fez. Depois de confirmar o agendamento, ele vê uma tela de confirmação com os detalhes do horário marcado.
+/**
+ * Componente que gerencia o fluxo completo de agendamento para clientes
+ * Guia o usuário através das etapas: telefone -> serviço -> data/horário -> confirmação
+ * 
+ * @param {Object} dados - Dados globais da aplicação
+ * @param {Function} atualizarDados - Função para atualizar o estado global
+ * @param {Function} setTelaAtual - Função para navegar entre telas
+ */
+export default function FluxoCliente({ dados, atualizarDados, setTelaAtual }) {
+  // Etapa atual do fluxo: 'phone', 'date', 'confirm', 'done'
+  const [etapaAtual, setEtapaAtual] = useState("phone");
+  
+  // Telefone formatado para exibição (XX) XXXXX-XXXX
+  const [telefoneFormatado, setTelefoneFormatado] = useState("");
+  
+  // Indica se é um cliente novo (exibe mensagem de boas-vindas)
+  const [clienteNovo, setClienteNovo] = useState(false);
+  
+  // Data selecionada para o agendamento
+  const [dataSelecionada, setDataSelecionada] = useState(null);
+  
+  // Horário selecionado para o agendamento
+  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
+  
+  // Serviço selecionado (corte, barba, etc.)
+  const [servicoSelecionado, setServicoSelecionado] = useState(null);
+  
+  // Telefone bruto (apenas números) para uso como chave
+  const [telefoneBruto, setTelefoneBruto] = useState("");
 
-  const [step, setStep] = useState("phone");
-  const [phone, setPhone] = useState("");
-  const [isNew, setIsNew] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-  const [rawPhone, setRawPhone] = useState("");
+  // Dados do cliente atual recuperados do estado global
+  const dadosCliente = dados.clients[telefoneBruto];
+  
+  // Configuração do programa de fidelidade
+  const configuracaoFidelidade = dados.loyaltyConfig;
 
-  const client = data.clients[rawPhone];
-  const loyalty = data.loyaltyConfig;
 
-  const handlePhoneSubmit = () => {
-    if (rawPhone.length < 10) return;
-    const exists = !!data.clients[rawPhone];
-    if (!exists) {
-      update((d) => {
-        d.clients[rawPhone] = { phone: rawPhone, cuts: 0, freeNext: false };
-        return d;
-      });
-      setIsNew(true);
-    }
-    setStep("date");
-  };
-
-  const bookedTimes = (dateStr) =>
-    data.appointments
-      .filter((a) => a.date === dateStr && a.status !== "cancelado")
-      .map((a) => a.time);
-
-  const availableForDay = (date) => {
-    const dow = date.getDay();
-    const slots = data.availableSlots[dow] || [];
-    const booked = bookedTimes(dateKey(date));
-    let available = slots.filter((t) => !booked.includes(t));
-
-    // Se é hoje, filtra horários que já passaram
-    const today = new Date();
-    const isToday = dateKey(date) === dateKey(today);
+  /**
+   * Processa o submissão do telefone
+   * Valida o formato, cria cadastro se necessário e avança para próxima etapa
+   */
+  const processarTelefone = () => {
+    // Verifica se o telefone tem pelo menos 10 dígitos
+    if (telefoneBruto.length < 10) return;
     
-    if (isToday) {
-      const currentHour = today.getHours();
-      const currentMinutes = today.getMinutes();
+    // Verifica se o cliente já existe na base
+    const clienteExistente = !!dados.clients[telefoneBruto];
+    
+    if (!clienteExistente) {
+      // Cria novo cadastro com dados iniciais
+      atualizarDados((dadosAtuais) => {
+        dadosAtuais.clients[telefoneBruto] = { 
+          phone: telefoneBruto, 
+          cuts: 0, 
+          freeNext: false 
+        };
+        return dadosAtuais;
+      });
+      setClienteNovo(true);
+    }
+    
+    // Avança para etapa de seleção de data/horário
+    setEtapaAtual("date");
+  };
+
+  /**
+   * Retorna os horários já agendados para uma data específica
+   * @param {string} dataString - Data no formato YYYY-MM-DD
+   * @returns {Array} Array com horários já ocupados
+   */
+  const horariosOcupados = (dataString) =>
+    dados.appointments
+      .filter((agendamento) => agendamento.date === dataString && agendamento.status !== "cancelado")
+      .map((agendamento) => agendamento.time);
+
+  /**
+   * Calcula os horários disponíveis para uma data específica
+   * Considera horários padrão, agendamentos existentes e horários passados (se for hoje)
+   * @param {Date} data - Data a ser verificada
+   * @returns {Array} Array com horários disponíveis
+   */
+  const horariosDisponiveis = (data) => {
+    // Dia da semana (0=domingo, 1=segunda, ..., 6=sábado)
+    const diaSemana = data.getDay();
+    
+    // Horários padrão para este dia da semana
+    const horariosPadrao = dados.availableSlots[diaSemana] || [];
+    
+    // Remove horários já ocupados
+    const ocupados = horariosOcupados(dateKey(data));
+    let disponiveis = horariosPadrao.filter((horario) => !ocupados.includes(horario));
+
+    // Se for hoje, remove horários que já passaram
+    const hoje = new Date();
+    const ehHoje = dateKey(data) === dateKey(hoje);
+    
+    if (ehHoje) {
+      const horaAtual = hoje.getHours();
+      const minutosAtuais = hoje.getMinutes();
       
-      available = available.filter((timeStr) => {
-        const [h, m] = timeStr.split(':').map(Number);
-        const slotTime = h * 60 + m; // converte para minutos
-        const currentTime = currentHour * 60 + currentMinutes;
-        return slotTime > currentTime; // só mostra horários futuros
+      disponiveis = disponiveis.filter((horarioString) => {
+        const [hora, minuto] = horarioString.split(':').map(Number);
+        const tempoHorario = hora * 60 + minuto; // converte para minutos totais
+        const tempoAtual = horaAtual * 60 + minutosAtuais;
+        return tempoHorario > tempoAtual; // só mostra horários futuros
       });
     }
 
-    return available;
+    return disponiveis;
   };
 
-  const handleBook = () => {
-    const isFree = loyalty.enabled && client && client.freeNext;
-    update((d) => {
-      const ap = {
-        id: Date.now(),
-        phone: rawPhone,
-        date: dateKey(selectedDate),
-        time: selectedTime,
-        service: selectedService,
+  /**
+   * Confirma e salva o agendamento
+   * Atualiza o programa de fidelidade se habilitado
+   */
+  const confirmarAgendamento = () => {
+    // Verifica se o corte é gratuito pelo programa de fidelidade
+    const ehGratuito = configuracaoFidelidade.enabled && dadosCliente && dadosCliente.freeNext;
+    
+    atualizarDados((dadosAtuais) => {
+      // Cria o novo agendamento
+      const novoAgendamento = {
+        id: Date.now(), // ID único baseado no timestamp
+        phone: telefoneBruto,
+        date: dateKey(dataSelecionada),
+        time: horarioSelecionado,
+        service: servicoSelecionado,
         status: "agendado",
-        isFree,
+        isFree: ehGratuito,
       };
-      d.appointments.push(ap);
+      dadosAtuais.appointments.push(novoAgendamento);
 
-      if (loyalty.enabled) {
-        if (!d.clients[rawPhone]) d.clients[rawPhone] = { cuts: 0, freeNext: false };
-        const c = d.clients[rawPhone];
-        if (isFree) {
-          c.freeNext = false;
+      // Atualiza o programa de fidelidade se habilitado
+      if (configuracaoFidelidade.enabled) {
+        // Garante que o cliente exista no array
+        if (!dadosAtuais.clients[telefoneBruto]) {
+          dadosAtuais.clients[telefoneBruto] = { cuts: 0, freeNext: false };
+        }
+        
+        const cliente = dadosAtuais.clients[telefoneBruto];
+        
+        if (ehGratuito) {
+          // Consome o corte gratuito
+          cliente.freeNext = false;
         } else {
-          c.cuts = (c.cuts || 0) + 1;
-          if (c.cuts % loyalty.cutsRequired === 0) c.freeNext = true;
+          // Incrementa contador de cortes
+          cliente.cuts = (cliente.cuts || 0) + 1;
+          
+          // Verifica se atingiu a meta para próximo corte gratuito
+          if (cliente.cuts % configuracaoFidelidade.cutsRequired === 0) {
+            cliente.freeNext = true;
+          }
         }
       }
-      return d;
+      return dadosAtuais;
     });
-    setStep("done");
+    
+    // Avança para tela de confirmação
+    setEtapaAtual("done");
   };
 
-  const days = next7Days().filter((d) => availableForDay(d).length > 0);
+  // Filtra apenas os dias que possuem horários disponíveis
+  const diasDisponiveis = next7Days().filter((data) => horariosDisponiveis(data).length > 0);
 
   return (
     <div className="panel">
       <header className="panel-header">
-        <button className="btn-back" onClick={() => setView("home")}>← Voltar</button>
+        <button className="btn-back" onClick={() => setTelaAtual("home")}>← Voltar</button>
         <h2 className="panel-title">Agendamento</h2>
         <div className="steps">
           {['Telefone', 'Horário', 'Confirmação'].map((s, i) => (
@@ -104,8 +180,8 @@ export default function ClientFlow({ data, update, setView }) {
               className="step-dot"
               style={{
                 background:
-                  i < (step === 'phone' ? 0 : step === 'date' ? 1 : step === 'confirm' ? 2 : 3) + 1 ||
-                  step === 'done'
+                  i < (etapaAtual === 'phone' ? 0 : etapaAtual === 'date' ? 1 : etapaAtual === 'confirm' ? 2 : 3) + 1 ||
+                  etapaAtual === 'done'
                     ? 'var(--gold)'
                     : 'var(--surface2)',
               }}
@@ -115,45 +191,45 @@ export default function ClientFlow({ data, update, setView }) {
       </header>
 
       <div className="panel-body">
-        {step === 'phone' && (
+        {etapaAtual === 'phone' && (
           <div className="fade-in form-card">
             <h3 className="card-title">Qual é o seu número?</h3>
             <p className="card-sub">Usamos apenas seu telefone para identificação</p>
             <input
               className="input"
               placeholder="(00) 00000-0000"
-              value={phone}
+              value={telefoneFormatado}
               onChange={(e) => {
-                const fmt = formatPhone(e.target.value);
-                setPhone(fmt);
-                setRawPhone(fmt.replace(/\D/g, ""));
+                const formato = formatPhone(e.target.value);
+                setTelefoneFormatado(formato);
+                setTelefoneBruto(formato.replace(/\D/g, ""));
               }}
-              onKeyDown={(e) => e.key === 'Enter' && handlePhoneSubmit()}
+              onKeyDown={(e) => e.key === 'Enter' && processarTelefone()}
             />
-            {loyalty.enabled && data.clients[rawPhone] && (
-              <LoyaltyBadge client={data.clients[rawPhone]} config={loyalty} />
+            {configuracaoFidelidade.enabled && dados.clients[telefoneBruto] && (
+              <LoyaltyBadge client={dados.clients[telefoneBruto]} config={configuracaoFidelidade} />
             )}
             <button
               className="btn-primary"
               style={{ marginTop: 24, width: '100%' }}
-              onClick={handlePhoneSubmit}
-              disabled={rawPhone.length < 10}
+              onClick={processarTelefone}
+              disabled={telefoneBruto.length < 10}
             >
               Continuar →
             </button>
           </div>
         )}
 
-        {step === 'date' && (
+        {etapaAtual === 'date' && (
           <div className="fade-in">
-            {isNew && (
+            {clienteNovo && (
               <div className="welcome-bar">
                 🎉 Bem-vindo! Cadastro realizado com sucesso.
               </div>
             )}
-            {loyalty.enabled && client?.freeNext && (
+            {configuracaoFidelidade.enabled && dadosCliente?.freeNext && (
               <div className="free-bar">
-                🎁 Seu próximo corte é <strong>GRATUITO</strong>! Aproveite.
+                <div className="free-bar">Seu próximo corte é <strong>GRATUITO</strong>! Aproveite.</div>
               </div>
             )}
 
@@ -163,12 +239,12 @@ export default function ClientFlow({ data, update, setView }) {
                 {SERVICES.map((s) => (
                   <button
                     key={s.id}
-                    className={`service-card ${selectedService === s.id ? 'active' : ''}`}
-                    onClick={() => setSelectedService(s.id)}
+                    className={`service-card ${servicoSelecionado === s.id ? 'active' : ''}`}
+                    onClick={() => setServicoSelecionado(s.id)}
                   >
                     <span className="service-label">{s.label}</span>
                     <span className="service-price">
-                      {client?.freeNext && loyalty.enabled ? 'GRÁTIS' : s.price}
+                      {dadosCliente?.freeNext && configuracaoFidelidade.enabled ? 'GRÁTIS' : s.price}
                     </span>
                   </button>
                 ))}
@@ -178,33 +254,33 @@ export default function ClientFlow({ data, update, setView }) {
             <div className="section">
               <h3 className="section-title">Escolha o Dia</h3>
               <div className="day-grid">
-                {days.map((d) => (
+                {diasDisponiveis.map((data) => (
                   <button
-                    key={dateKey(d)}
-                    className={`day-card ${selectedDate && dateKey(selectedDate) === dateKey(d) ? 'active' : ''}`}
+                    key={dateKey(data)}
+                    className={`day-card ${dataSelecionada && dateKey(dataSelecionada) === dateKey(data) ? 'active' : ''}`}
                     onClick={() => {
-                      setSelectedDate(d);
-                      setSelectedTime(null);
+                      setDataSelecionada(data);
+                      setHorarioSelecionado(null);
                     }}
                   >
-                    <span className="day-name">{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-                    <span className="day-num">{d.getDate()}</span>
+                    <span className="day-name">{data.toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+                    <span className="day-num">{data.getDate()}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {selectedDate && (
+            {dataSelecionada && (
               <div className="section fade-in">
                 <h3 className="section-title">Horários Disponíveis</h3>
                 <div className="time-grid">
-                  {availableForDay(selectedDate).map((t) => (
+                  {horariosDisponiveis(dataSelecionada).map((horario) => (
                     <button
-                      key={t}
-                      className={`time-slot ${selectedTime === t ? 'active' : ''}`}
-                      onClick={() => setSelectedTime(t)}
+                      key={horario}
+                      className={`time-slot ${horarioSelecionado === horario ? 'active' : ''}`}
+                      onClick={() => setHorarioSelecionado(horario)}
                     >
-                      {t}
+                      {horario}
                     </button>
                   ))}
                 </div>
@@ -214,64 +290,64 @@ export default function ClientFlow({ data, update, setView }) {
             <button
               className="btn-primary"
               style={{ width: '100%', marginTop: 24 }}
-              disabled={!selectedDate || !selectedTime || !selectedService}
-              onClick={() => setStep('confirm')}
+              disabled={!dataSelecionada || !horarioSelecionado || !servicoSelecionado}
+              onClick={() => setEtapaAtual('confirm')}
             >
               Confirmar →
             </button>
           </div>
         )}
 
-        {step === 'confirm' && (
+        {etapaAtual === 'confirm' && (
           <div className="fade-in form-card">
             <h3 className="card-title">Confirmar Agendamento</h3>
             <div className="confirm-card">
-              <Row label="Telefone" value={phone} />
-              <Row label="Serviço" value={SERVICES.find((s) => s.id === selectedService)?.label} />
+              <Row label="Telefone" value={telefoneFormatado} />
+              <Row label="Serviço" value={SERVICES.find((s) => s.id === servicoSelecionado)?.label} />
               <Row
                 label="Data"
-                value={selectedDate?.toLocaleDateString('pt-BR', {
+                value={dataSelecionada?.toLocaleDateString('pt-BR', {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
                 })}
               />
-              <Row label="Horário" value={selectedTime} />
-              {loyalty.enabled && client?.freeNext && (
+              <Row label="Horário" value={horarioSelecionado} />
+              {configuracaoFidelidade.enabled && dadosCliente?.freeNext && (
                 <Row label="Desconto" value="🎁 Corte Gratuito!" highlight />
               )}
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setStep('date')}>
+              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setEtapaAtual('date')}>
                 ← Voltar
               </button>
-              <button className="btn-primary" style={{ flex: 2 }} onClick={handleBook}>
+              <button className="btn-primary" style={{ flex: 2 }} onClick={confirmarAgendamento}>
                 Agendar ✓
               </button>
             </div>
           </div>
         )}
 
-        {step === 'done' && (
+        {etapaAtual === 'done' && (
           <div className="fade-in form-card" style={{ textAlign: 'center' }}>
             <div className="success-icon">✓</div>
             <h3 className="card-title">Agendado!</h3>
             <p className="card-sub">
               Seu horário está confirmado para{' '}
               <strong>
-                {selectedDate?.toLocaleDateString('pt-BR', {
+                {dataSelecionada?.toLocaleDateString('pt-BR', {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
                 })}
               </strong>{' '}
-              às <strong>{selectedTime}</strong>.
+              às <strong>{horarioSelecionado}</strong>.
             </p>
-            {loyalty.enabled && <LoyaltyBadge client={data.clients[rawPhone]} config={loyalty} />}
+            {configuracaoFidelidade.enabled && <LoyaltyBadge client={dados.clients[telefoneBruto]} config={configuracaoFidelidade} />}
             <button
               className="btn-primary"
               style={{ marginTop: 24, width: '100%' }}
-              onClick={() => setView('home')}
+              onClick={() => setTelaAtual('home')}
             >
               Voltar ao Início
             </button>

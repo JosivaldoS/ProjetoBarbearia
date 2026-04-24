@@ -2,12 +2,12 @@ import { useState } from "react";
 import { SERVICES, dateKey, formatPhone, statusColor } from "../../utils/data";
 import "./AgendaTab.css";
 
-export default function AgendaTab({ data, update }) {
+export default function AgendaTab({ dados, atualizarDados }) {
   // Este código aqui funciona assim: tem um estado "filter" que controla qual filtro de agendamento está ativo. O usuário pode escolher entre "todos", "hoje", "futuros" e "pendentes". Com base nesse filtro, a lista de agendamentos é filtrada e exibida. Além disso, cada agendamento tem botões para marcar como concluído ou cancelar, que atualizam o status do agendamento no estado global.
   const [filter, setFilter] = useState("todos");
   const today = dateKey(new Date());
 
-  let apps = [...data.appointments].sort((a, b) =>
+  let apps = [...dados.appointments].sort((a, b) =>
     (a.date + a.time).localeCompare(b.date + b.time)
   );
 
@@ -16,14 +16,14 @@ export default function AgendaTab({ data, update }) {
   if (filter === "futuros") apps = apps.filter((a) => a.date >= today);
 
   const cancel = (id) =>
-    update((d) => {
+    atualizarDados((d) => {
       const ap = d.appointments.find((x) => x.id === id);
       if (ap) ap.status = "cancelado";
       return d;
     });
 
   const complete = (id) =>
-    update((d) => {
+    atualizarDados((d) => {
       const ap = d.appointments.find((x) => x.id === id);
       if (ap) ap.status = "concluído";
       return d;

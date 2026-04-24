@@ -1,10 +1,10 @@
 import { formatPhone } from "../../utils/data";
 import "./LoyaltyTab.css";
 
-export default function LoyaltyTab({ data, update }) {
+export default function LoyaltyTab({ dados, atualizarDados }) {
   // Essa função funciona assim: o cliente ganha um corte grátis a cada X cortes realizados. O número X é configurável aqui. O sistema conta quantos cortes cada cliente tem e, quando atinge o número X, marca o próximo corte como grátis. O cliente pode usar esse corte grátis na próxima visita, e então o contador de cortes volta a zero para ele.
 
-  const cfg = data.loyaltyConfig;
+  const cfg = dados.loyaltyConfig;
 
   return (
     <div className="form-card">
@@ -14,7 +14,7 @@ export default function LoyaltyTab({ data, update }) {
         <button
           className={`toggle ${cfg.enabled ? "on" : ""}`}
           onClick={() =>
-            update((d) => {
+            atualizarDados((d) => {
               d.loyaltyConfig.enabled = !d.loyaltyConfig.enabled;
               return d;
             })
@@ -32,7 +32,7 @@ export default function LoyaltyTab({ data, update }) {
               <button
                 className="btn-sm"
                 onClick={() =>
-                  update((d) => {
+                  atualizarDados((d) => {
                     if (d.loyaltyConfig.cutsRequired > 2) d.loyaltyConfig.cutsRequired -= 1;
                     return d;
                   })
@@ -44,7 +44,7 @@ export default function LoyaltyTab({ data, update }) {
               <button
                 className="btn-sm"
                 onClick={() =>
-                  update((d) => {
+                  atualizarDados((d) => {
                     d.loyaltyConfig.cutsRequired += 1;
                     return d;
                   })
@@ -61,7 +61,7 @@ export default function LoyaltyTab({ data, update }) {
       )}
 
       <h3 className="section-title" style={{ marginTop: 32 }}>Visão Geral dos Clientes</h3>
-      {Object.values(data.clients).map((c) => (
+      {Object.values(dados.clients).map((c) => (
         <div key={c.phone} className="loyalty-row">
           <span className="ap-phone">{formatPhone(c.phone)}</span>
           <span className="card-sub">{c.cuts || 0} corte{(c.cuts || 0) !== 1 ? 's' : ''}</span>
@@ -75,7 +75,7 @@ export default function LoyaltyTab({ data, update }) {
             className="btn-sm-success"
             title="Registrar corte manualmente"
             onClick={() =>
-              update((d) => {
+              atualizarDados((d) => {
                 if (!d.clients[c.phone]) return d;
                 d.clients[c.phone].cuts = (d.clients[c.phone].cuts || 0) + 1;
                 if (cfg.enabled && d.clients[c.phone].cuts % cfg.cutsRequired === 0) {
@@ -89,7 +89,7 @@ export default function LoyaltyTab({ data, update }) {
           </button>
         </div>
       ))}
-      {Object.keys(data.clients).length === 0 && <div className="empty">Nenhum cliente cadastrado ainda.</div>}
+      {Object.keys(dados.clients).length === 0 && <div className="empty">Nenhum cliente cadastrado ainda.</div>}
     </div>
   );
 }

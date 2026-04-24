@@ -5,18 +5,32 @@ import LoyaltyTab from "../LoyaltyTab/LoyaltyTab";
 import ClientsTab from "../ClientsTab/ClientsTab";
 import "./BarberPanel.css";
 
-export default function BarberPanel({ data, update, setView, auth, setAuth }) {
-  // Essa função funciona assim: quando o barbeiro tenta acessar o painel, ele precisa digitar a senha. Se a senha estiver correta, ele ganha acesso ao painel. Se não, ele vê uma mensagem de erro. O estado "auth" controla se o barbeiro está autenticado ou não. O estado "pw" armazena a senha digitada, e "pwError" indica se houve um erro na autenticação.
+/**
+ * Componente do painel administrativo do barbeiro
+ * Controla autenticação e gerencia as abas de funcionalidades
+ * 
+ * @param {Object} dados - Dados globais da aplicação
+ * @param {Function} atualizarDados - Função para atualizar o estado global
+ * @param {Function} setTelaAtual - Função para navegar entre telas
+ * @param {boolean} autenticado - Indica se o barbeiro está autenticado
+ * @param {Function} setAutenticado - Função para alterar estado de autenticação
+ */
+export default function PainelBarbeiro({ dados, atualizarDados, setTelaAtual, autenticado, setAutenticado }) {
+  // Senha digitada pelo usuário no campo de autenticação
+  const [senhaDigitada, setSenhaDigitada] = useState("");
+  
+  // Aba atual do painel: 'agenda', 'slots', 'loyalty', 'clients'
+  const [abaAtual, setAbaAtual] = useState("agenda");
+  
+  // Indica se houve erro na autenticação (senha incorreta)
+  const [erroSenha, setErroSenha] = useState(false);
 
-  const [pw, setPw] = useState("");
-  const [tab, setTab] = useState("agenda");
-  const [pwError, setPwError] = useState(false);
-
-  if (!auth) {
+  // Se não estiver autenticado, mostra tela de login
+  if (!autenticado) {
     return (
       <div className="panel">
         <header className="panel-header">
-          <button className="btn-back" onClick={() => setView("home")}>
+          <button className="btn-back" onClick={() => setTelaAtual("home")}>
             ← Voltar
           </button>
           <h2 className="panel-title">Área do Barbeiro</h2>
@@ -33,25 +47,33 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
               type="password"
               className="input"
               placeholder="Senha"
-              value={pw}
+              value={senhaDigitada}
               onChange={(e) => {
-                setPw(e.target.value);
-                setPwError(false);
+                setSenhaDigitada(e.target.value);
+                setErroSenha(false);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  if (pw === data.barberPassword) setAuth(true);
-                  else setPwError(true);
+                  // Verifica se a senha digitada corresponde à senha cadastrada
+                  if (senhaDigitada === dados.barberPassword) {
+                    setAutenticado(true);
+                  } else {
+                    setErroSenha(true);
+                  }
                 }
               }}
             />
-            {pwError && <p className="error">Senha incorreta. (padrão: 1234)</p>}
+            {erroSenha && <p className="error">Senha incorreta. (padrão: 1234)</p>}
             <button
               className="btn-primary"
               style={{ width: "100%", marginTop: 16 }}
               onClick={() => {
-                if (pw === data.barberPassword) setAuth(true);
-                else setPwError(true);
+                // Verifica se a senha digitada corresponde à senha cadastrada
+                if (senhaDigitada === dados.barberPassword) {
+                  setAutenticado(true);
+                } else {
+                  setErroSenha(true);
+                }
               }}
             >
               Entrar
@@ -62,7 +84,11 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
     );
   }
 
-  const tabs = [
+  /**
+   * Configuração das abas disponíveis no painel do barbeiro
+   * Cada aba representa uma funcionalidade administrativa
+   */
+  const abasDisponiveis = [
     { id: "agenda", label: "📅 Agenda" },
     { id: "slots", label: "⏰ Horários" },
     { id: "loyalty", label: "⭐ Fidelidade" },
@@ -75,8 +101,9 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
         <button
           className="btn-back"
           onClick={() => {
-            setAuth(false);
-            setView("home");
+            // Faz logout do barbeiro e retorna à tela inicial
+            setAutenticado(false);
+            setTelaAtual("home");
           }}
         >
           ← Sair
@@ -86,22 +113,23 @@ export default function BarberPanel({ data, update, setView, auth, setAuth }) {
       </header>
 
       <div className="tab-bar">
-        {tabs.map((t) => (
+        {abasDisponiveis.map((aba) => (
           <button
-            key={t.id}
-            className={`tab-btn ${tab === t.id ? "active" : ""}`}
-            onClick={() => setTab(t.id)}
+            key={aba.id}
+            className={`tab-btn ${abaAtual === aba.id ? "active" : ""}`}
+            onClick={() => setAbaAtual(aba.id)}
           >
-            {t.label}
+            {aba.label}
           </button>
         ))}
       </div>
 
       <div className="panel-body">
-        {tab === "agenda" && <AgendaTab data={data} update={update} />}
-        {tab === "slots" && <SlotsTab data={data} update={update} />}
-        {tab === "loyalty" && <LoyaltyTab data={data} update={update} />}
-        {tab === "clients" && <ClientsTab data={data} update={update} />}
+        {/* Renderização condicional das abas com base na aba selecionada */}
+        {abaAtual === "agenda" && <AgendaTab dados={dados} atualizarDados={atualizarDados} />}
+        {abaAtual === "slots" && <SlotsTab dados={dados} atualizarDados={atualizarDados} />}
+        {abaAtual === "loyalty" && <LoyaltyTab dados={dados} atualizarDados={atualizarDados} />}
+        {abaAtual === "clients" && <ClientsTab dados={dados} atualizarDados={atualizarDados} />}
       </div>
     </div>
   );

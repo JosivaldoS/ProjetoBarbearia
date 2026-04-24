@@ -2,44 +2,63 @@ import { useState } from "react";
 import { formatPhone, SERVICES, statusColor } from "../../utils/data";
 import "./ClientsTab.css";
 
-export default function ClientsTab({ data }) {
-  // Essa função funciona assim: o usuário digita um número de telefone, e a gente filtra os clientes para mostrar apenas os que têm aquele número (ou parte dele) no telefone. A gente remove tudo que não é dígito do input para facilitar a busca, já que os telefones são armazenados só com números.
+/**
+ * Componente que exibe e gerencia a lista de clientes
+ * Permite buscar clientes por telefone e visualizar histórico de agendamentos
+ * 
+ * @param {Object} dados - Dados globais da aplicação contendo clientes e agendamentos
+ */
+export default function ClientsTab({ dados }) {
+  // Estado para controlar o termo de busca por telefone
+  const [buscaTelefone, setBuscaTelefone] = useState("");
   
-  const [search, setSearch] = useState("");
-  const clients = Object.values(data.clients).filter((c) =>
-    c.phone.includes(search.replace(/\D/g, ""))
+  /**
+   * Filtra os clientes com base no telefone digitado
+   * Remove caracteres não numéricos para facilitar a busca
+   */
+  const clientesFiltrados = Object.values(dados.clients).filter((cliente) =>
+    cliente.phone.includes(buscaTelefone.replace(/\D/g, ""))
   );
 
   return (
     <div>
+      {/* Campo de busca por telefone */}
       <input
         className="input"
         placeholder="Buscar por telefone..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={buscaTelefone}
+        onChange={(e) => setBuscaTelefone(e.target.value)}
       />
-      {clients.length === 0 && <div className="empty">Nenhum cliente encontrado.</div>}
-      {clients.map((c) => {
-        const appts = data.appointments.filter((a) => a.phone === c.phone);
-        const done = appts.filter((a) => a.status === "concluído").length;
+      
+      {/* Mensagem quando nenhum cliente é encontrado */}
+      {clientesFiltrados.length === 0 && <div className="empty">Nenhum cliente encontrado.</div>}
+      
+      {/* Lista de clientes com seus históricos */}
+      {clientesFiltrados.map((cliente) => {
+        // Filtra agendamentos deste cliente específico
+        const agendamentosCliente = dados.appointments.filter((agendamento) => agendamento.phone === cliente.phone);
+        
+        // Conta apenas agendamentos concluídos
+        const concluidos = agendamentosCliente.filter((agendamento) => agendamento.status === "concluído").length;
         return (
-          // Aqui usamos o telefone como chave, mas em um cenário real, seria melhor usar um ID único para cada cliente
-          <div key={c.phone} className="client-card">
+          // Card individual do cliente com informações e histórico
+          <div key={cliente.phone} className="client-card">
             <div className="client-top">
-              <span className="ap-phone">{formatPhone(c.phone)}</span>
-              <span className="badge">{done} concluídos</span>
+              <span className="ap-phone">{formatPhone(cliente.phone)}</span>
+              <span className="badge">{concluidos} concluídos</span>
             </div>
             <div className="client-meta">
-              <span className="card-sub">Total de cortes: {c.cuts || 0}</span>
-              {c.freeNext && <span className="free-badge">PRÓXIMO GRÁTIS</span>}
+              <span className="card-sub">Total de cortes: {cliente.cuts || 0}</span>
+              {cliente.freeNext && <span className="free-badge">PRÓXIMO GRÁTIS</span>}
             </div>
             <div style={{ marginTop: 8 }}>
-              {appts.slice(-3).reverse().map((a) => (
-                <div key={a.id} className="mini-ap">
-                  <span>{new Date(`${a.date}T12:00:00`).toLocaleDateString('pt-BR')}</span>
-                  <span>{a.time}</span>
-                  <span>{SERVICES.find((s) => s.id === a.service)?.label}</span>
-                  <span className="badge" style={{ background: statusColor(a.status) }}>{a.status}</span>
+              {/* Exibe os últimos 3 agendamentos do cliente em ordem reversa */}
+              {agendamentosCliente.slice(-3).reverse().map((agendamento) => (
+                <div key={agendamento.id} className="mini-ap">
+                  <span>{new Date(`${agendamento.date}T12:00:00`).toLocaleDateString('pt-BR')}</span>
+                  <span>{agendamento.time}</span>
+                  <span>{SERVICES.find((servico) => servico.id === agendamento.service)?.label}</span>
+                  <span className="badge" style={{ background: statusColor(agendamento.status) }}>{agendamento.status}</span>
                 </div>
               ))}
             </div>
